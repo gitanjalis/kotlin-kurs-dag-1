@@ -40,8 +40,35 @@ fun createApplicationContext(appConfig: AppConfig): KursApplicationContext {
                     bd.constructorArgumentValues.addGenericArgumentValue(getBean("dataSourceConfig"))
                 }
             })
+
+            registerBean("thingDoer", ThingDoer::class.java, object : BeanDefinitionCustomizer {
+                override fun customize(bd: BeanDefinition) {
+                    bd.initMethodName = "start"
+                    bd.destroyMethodName = "shutdown"
+
+                    bd.propertyValues.add("dataSource", getBean("dataSource"))
+                }
+            })
         }
         .let {
+            it.refresh()
+            it.registerShutdownHook()
             KursApplicationContext(it)
         }
+}
+
+class ThingDoer {
+    lateinit var dataSource: DataSource
+
+    fun start() {
+        println("Start")
+    }
+
+    fun doThing() {
+        dataSource.connection
+    }
+
+    fun shutdown() {
+        println("Stop")
+    }
 }
