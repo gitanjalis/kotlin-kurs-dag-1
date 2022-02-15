@@ -25,6 +25,8 @@ dependencies {
     implementation("com.h2database:h2:2.1.210")
     implementation("org.flywaydb:flyway-core:8.4.3")
 
+    implementation("org.springframework:spring-context:5.3.15")
+
     testImplementation(kotlin("test"))
 }
 

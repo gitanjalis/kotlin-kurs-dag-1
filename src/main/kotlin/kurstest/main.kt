@@ -19,7 +19,8 @@ import javax.sql.DataSource
 
 fun main() {
     val appConfig = createAppConfig(System.getenv("KURS_ENVIRONMENT") ?: "local")
-    val dataSource = createAndMigrateDataSource(appConfig)
+    val appContext = createApplicationContext(appConfig)
+    val dataSource = appContext.dataSource
 
     embeddedServer(Netty, port = appConfig.httpPort) {
         install(StatusPages) {
