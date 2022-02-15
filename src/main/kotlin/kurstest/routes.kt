@@ -1,10 +1,13 @@
 package kurstest
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.html.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
+import io.ktor.routing.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -13,10 +16,50 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.html.*
 import kotliquery.Session
 import kotliquery.queryOf
+import javax.sql.DataSource
 import kotlin.concurrent.thread
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+
+fun Application.createKursKtorApplication(appConfig: AppConfig, dataSource: DataSource) {
+    install(StatusPages) {
+        exception<Throwable> { err ->
+            call.respondText("An unknown error occurred: ${err.message}")
+            throw err
+        }
+        status(HttpStatusCode.NotFound) {
+            call.respondText("No such page :(")
+        }
+    }
+
+    routing {
+        static("/assets") {
+            if (appConfig.isDevMode) {
+                files("src/main/resources/assets")
+            } else {
+                staticBasePackage = null
+                resources("assets")
+            }
+        }
+
+        get("/", withDbSession(dataSource, ApplicationCall::handleHomePage))
+
+        get("/about") { call.handleAboutPage() }
+
+        get("/db_error_test", withDbSession(dataSource) { dbSess ->
+            respondText("Db says: ${dbSess.single(queryOf("SELECT count(*) FROM does_not_exist")) { mapFromRow(it) }}")
+        })
+
+        get("/coroutine_test", withDbSession(dataSource, ApplicationCall::handleCoroutineTest))
+
+        get("/users", withDbSession(dataSource, ApplicationCall::handleListUsers))
+        get("/users/new") { call.handleNewUser() }
+        post("/users", withDbSession(dataSource, ApplicationCall::handleCreateUser))
+        get("/users/{userId}", withDbSession(dataSource, ApplicationCall::handleShowUser))
+
+    }
+}
 
 suspend fun ApplicationCall.handleHomePage(dbSess: Session): Unit {
     val row = dbSess.single(queryOf("SELECT count(*) FROM user_t"), ::mapFromRow)

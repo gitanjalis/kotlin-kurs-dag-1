@@ -17,6 +17,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core:1.6.7")
     implementation("io.ktor:ktor-server-netty:1.6.7")
     implementation("io.ktor:ktor-html-builder:1.6.7")
+    implementation("io.ktor:ktor-server-servlet:1.6.7")
 
     implementation("com.typesafe:config:1.4.1")
 
@@ -26,6 +27,11 @@ dependencies {
     implementation("org.flywaydb:flyway-core:8.4.3")
 
     implementation("org.springframework:spring-context:5.3.15")
+
+    implementation("org.eclipse.jetty:jetty-server:9.4.44.v20210927")
+    implementation("org.eclipse.jetty:jetty-servlet:9.4.44.v20210927")
+    implementation("org.springframework.security:spring-security-web:5.6.1")
+    implementation("org.springframework.security:spring-security-config:5.6.1")
 
     testImplementation(kotlin("test"))
 }

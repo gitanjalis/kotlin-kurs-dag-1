@@ -20,45 +20,9 @@ import javax.sql.DataSource
 fun main() {
     val appConfig = createAppConfig(System.getenv("KURS_ENVIRONMENT") ?: "local")
     val appContext = createApplicationContext(appConfig)
-    val dataSource = appContext.dataSource
 
     embeddedServer(Netty, port = appConfig.httpPort) {
-        install(StatusPages) {
-            exception<Throwable> { err ->
-                call.respondText("An unknown error occurred: ${err.message}")
-                throw err
-            }
-            status(HttpStatusCode.NotFound) {
-                call.respondText("No such page :(")
-            }
-        }
-
-        routing {
-            static("/assets") {
-                if (appConfig.isDevMode) {
-                    files("src/main/resources/assets")
-                } else {
-                    staticBasePackage = null
-                    resources("assets")
-                }
-            }
-
-            get("/", withDbSession(dataSource, ApplicationCall::handleHomePage))
-
-            get("/about") { call.handleAboutPage() }
-
-            get("/db_error_test", withDbSession(dataSource) { dbSess ->
-                respondText("Db says: ${dbSess.single(queryOf("SELECT count(*) FROM does_not_exist")) { mapFromRow(it) }}")
-            })
-
-            get("/coroutine_test", withDbSession(dataSource, ApplicationCall::handleCoroutineTest))
-
-            get("/users", withDbSession(dataSource, ApplicationCall::handleListUsers))
-            get("/users/new") { call.handleNewUser() }
-            post("/users", withDbSession(dataSource, ApplicationCall::handleCreateUser))
-            get("/users/{userId}", withDbSession(dataSource, ApplicationCall::handleShowUser))
-
-        }
+        createKursKtorApplication(appConfig, appContext.dataSource)
     }.start(wait = true)
 }
 
