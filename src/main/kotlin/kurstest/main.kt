@@ -18,7 +18,7 @@ import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
 fun main() {
-    val appConfig = createAppConfig("local")
+    val appConfig = createAppConfig(System.getenv("KURS_ENVIRONMENT") ?: "local")
     val dataSource = createAndMigrateDataSource(appConfig)
 
     embeddedServer(Netty, port = appConfig.httpPort) {
@@ -34,7 +34,12 @@ fun main() {
 
         routing {
             static("/assets") {
-                files("src/main/resources/assets")
+                if (appConfig.isDevMode) {
+                    files("src/main/resources/assets")
+                } else {
+                    staticBasePackage = null
+                    resources("assets")
+                }
             }
 
             get("/", withDbSession(dataSource, ApplicationCall::handleHomePage))
