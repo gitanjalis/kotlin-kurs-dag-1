@@ -33,6 +33,9 @@ dependencies {
     implementation("org.springframework.security:spring-security-web:5.6.1")
     implementation("org.springframework.security:spring-security-config:5.6.1")
 
+    implementation("com.amazonaws:aws-lambda-java-core:1.2.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
+
     implementation("at.favre.lib:bcrypt:0.9.0")
 
     testImplementation(kotlin("test"))
