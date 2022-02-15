@@ -5,9 +5,18 @@ import io.ktor.html.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.time.withTimeout
+import kotlinx.coroutines.withTimeout
 import kotlinx.html.*
 import kotliquery.Session
 import kotliquery.queryOf
+import kotlin.concurrent.thread
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 suspend fun ApplicationCall.handleHomePage(dbSess: Session): Unit {
     val row = dbSess.single(queryOf("SELECT count(*) FROM user_t"), ::mapFromRow)
@@ -101,6 +110,51 @@ suspend fun ApplicationCall.handleShowUser(dbSess: Session) {
                 a(href = "/users") { +"Tilbake til listen"}
             }
         }
+    }
+}
+
+suspend fun ApplicationCall.handleCoroutineTest(dbSess: Session) {
+    withTimeout(10000) {
+        val (callARes, callBRes, callCRes, queryARes, queryBRes) = listOf(
+            async {
+                delay(1000)
+                "result A"
+            },
+            async {
+                val delayTime = (500L..1500).random()
+                delay(delayTime)
+                "result B $delayTime"
+            },
+            async {
+                val delayTime = (500L..1500).random()
+                delay(delayTime)
+                "result C $delayTime"
+            },
+            async {
+                dbSess.single(queryOf("SELECT 1"), ::mapFromRow)
+            },
+            async {
+                dbSess.single(queryOf("SELECT 2"), ::mapFromRow)
+            }
+        ).awaitAll()
+
+        val callDRes = async {
+            suspendCoroutine<Long> {
+                doSomethingAsync(
+                    onComplete = { num -> it.resume(num) },
+                    onError = { err -> it.resumeWithException(err)  }
+                )
+            }
+        }.await()
+
+        respondText("Coroutine res: $callARes, $callBRes, $callCRes, $callDRes, $queryARes, $queryBRes")
+    }
+}
+
+fun doSomethingAsync(onComplete: (num: Long) -> Unit, onError: (res: Exception) -> Unit) {
+    thread {
+        Thread.sleep(200)
+        onComplete(9000)
     }
 }
 

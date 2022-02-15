@@ -50,6 +50,8 @@ fun main() {
                 respondText("Db says: ${dbSess.single(queryOf("SELECT count(*) FROM does_not_exist")) { mapFromRow(it) }}")
             })
 
+            get("/coroutine_test", withDbSession(dataSource, ApplicationCall::handleCoroutineTest))
+
             get("/users", withDbSession(dataSource, ApplicationCall::handleListUsers))
             get("/users/new") { call.handleNewUser() }
             post("/users", withDbSession(dataSource, ApplicationCall::handleCreateUser))
