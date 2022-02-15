@@ -1,5 +1,6 @@
 package kurstest
 
+import kotliquery.sessionOf
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy
@@ -31,10 +32,15 @@ open class KursSecurityConfig : WebSecurityConfigurerAdapter() {
     fun configureGlobal(authenticationManagerBuilder: AuthenticationManagerBuilder) {
         authenticationManagerBuilder.authenticationProvider(object : AuthenticationProvider {
             override fun authenticate(auth: Authentication): Authentication? {
-                // Maybe use dataSource and stuff here to query a database or something, epic win
+                val username = auth.principal as String
+                val password = auth.credentials as String
 
-                val username = auth.principal
-                val password = auth.credentials
+                val isVerified = sessionOf(dataSource).use { dbSess -> verifyUserPassword(dbSess, username, password)}
+
+                if (isVerified) {
+                    return UsernamePasswordAuthenticationToken(username, password, listOf(SimpleGrantedAuthority("ROLE_USER")))
+                }
+
                 if (username == "quentin" && password == "test") {
                     return UsernamePasswordAuthenticationToken(username, password, listOf(SimpleGrantedAuthority("ROLE_USER")))
                 }

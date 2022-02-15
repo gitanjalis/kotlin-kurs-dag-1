@@ -3,5 +3,6 @@ CREATE TABLE user_t (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
     email VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    password_hash BYTEA NOT NULL
 );

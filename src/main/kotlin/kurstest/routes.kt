@@ -122,6 +122,13 @@ suspend fun ApplicationCall.handleNewUser() {
                     }
                 }
 
+                div {
+                    label {
+                        +"Passord"
+                        input(type = InputType.password, name = "password")
+                    }
+                }
+
                 button(type = ButtonType.submit) { +"Lag brukeren" }
             }
         }
@@ -130,7 +137,7 @@ suspend fun ApplicationCall.handleNewUser() {
 
 suspend fun ApplicationCall.handleCreateUser(dbSess: Session) {
     val params = receiveParameters()
-    val userId = createUser(dbSess, email = params["email"]!!, name = params["name"]!!)
+    val userId = createUser(dbSess, email = params["email"]!!, name = params["name"]!!, passwordText = params["password"]!!)
 
     respondRedirect(url = "/users/${userId}")
 }
