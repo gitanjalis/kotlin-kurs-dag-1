@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "1.6.10"
     application
     id("com.github.johnrengelman.shadow") version "7.0.0"
+    id("com.github.jlouns.cpe") version "0.5.0"
 }
 
 group = "me.august"
@@ -46,14 +47,18 @@ application {
 }
 
 tasks {
+    create<com.github.jlouns.gradle.cpe.tasks.CrossPlatformExec>("buildSinglePageApp") {
+        commandLine("npx", "webpack", "--mode", "production")
+    }
+
     shadowJar {
+        dependsOn("buildSinglePageApp")
         manifest {
             attributes("Main-Class" to "kurstest.MainKt")
         }
     }
-}
 
-
-tasks.test {
-    useJUnitPlatform()
+    test {
+        useJUnitPlatform()
+    }
 }

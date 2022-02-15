@@ -54,6 +54,8 @@ fun Application.createKursKtorApplication(appConfig: AppConfig, dataSource: Data
 
         get("/", webResponseWithDbSession(dataSource, ::handleHomePage))
 
+        get("/spa", { call.handleSPA(appConfig) })
+
         get("/about") { call.handleAboutPage() }
 
         get("/db_error_test", withDbSession(dataSource) { dbSess ->
@@ -106,6 +108,28 @@ suspend fun ApplicationCall.handleAboutPage() {
     respondHtmlTemplate(KursLayout("Om")) {
         pageBody {
             h1 { +"Om kurset :)" }
+        }
+    }
+}
+
+suspend fun ApplicationCall.handleSPA(appConfig: AppConfig) {
+    val scriptSrc = if (appConfig.isDevMode) {
+        "http://localhost:9000/index.js"
+    } else {
+        "/assets/js/index.js"
+    }
+
+    respondHtmlTemplate(KursLayout("SPA")) {
+        pageBody {
+            div {
+               attributes["id"] = "app"
+
+                +"Loading...."
+            }
+
+            script(type = ScriptType.textJavaScript, src = scriptSrc) {
+
+            }
         }
     }
 }
